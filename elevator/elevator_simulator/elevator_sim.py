@@ -1,8 +1,10 @@
-from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
+from typing import Tuple
 
-from request_simulator.requests_sim import Request, RequestPool
+from request_simulator.request import Request
+
+from elevator_simulator.elevator import Elevator
 
 
 class Status(Enum):
@@ -11,71 +13,67 @@ class Status(Enum):
     BUSY = 3
 
 
-@dataclass()
-class Elevator:
-    name: str
-    current_level: int = 1
-    status: Status = Status.IDLE
-
-    def update_state(self):
-        if self.status.name == Status.IDLE:
-            self.status = Status.BUSY
-
-        self.status = Status.IDLE
-
-    def set_idle(self):
-        self.status = Status.IDLE
-
-    def set_assigned(self):
-        self.status = Status.ASSIGNED
-
-    def set_busy(self):
-        self.status = Status.BUSY
-
-
-@dataclass()
 class ElevatorSimulator:
-    elevators: list[Elevator]
-    requests_pool: RequestPool
-    _time = 0
+    def __init__(self, elevators: list[Elevator]) -> None:
+        self.elevators = elevators
+        self._time = 0
 
-    def call(self, request: Request) -> str:
-        elevator = self.find_available_elevator(request)
-        elevator.set_assigned()
-        print(f"status: {elevator.status}")
-        print(f"status: {elevator.status == Status.IDLE}")
+    def call(self, request: Request) -> Tuple[Elevator, int]:
+        elevator, arrival_time = self.find_available_elevator()
 
-        # TODO find when is the starting time
-        request.assigned_time = self.time
+        if elevator.status != Status.BUSY:
+            elevator.set_busy()
 
-        self.requests_pool.add_pending((elevator, request))
-        return elevator.name
+        # calculate finish_time of request
+        if len(elevator.requests_pool) > 0:
+            request.finish_time = (
+                elevator.requests_pool[-1].finish_time + request.length_of_travel
+            )
+        else:
+            request.finish_time = self.time + request.length_of_travel
+
+        elevator.requests_pool.append(request)
+        return elevator, arrival_time
 
     def update(self) -> None:
         self.adjust_time()
-        self.requests_pool.update(self.time)
-
-    def find_available_elevator(self, request: Request) -> Elevator:
-        # TODO implement case that available elevator is further than not
-        #      available one (will be in future)
-        result = None
         for elevator in self.elevators:
-            if elevator.status == Status.IDLE:
-                result = elevator
+            elevator.update(self.time)
 
-        if result is None:
-            result = self.find_next_elevator()
+    def find_available_elevator(self) -> Tuple[Elevator, int]:
+        """
+        Function returns available elevator by assuming that elevator arriving
+        faster than others are the better one.
+        """
+        arrival_times = self.get_arrival_times()
+        arrival_times.sort(key=lambda x: x[1])
 
-        return deepcopy(result)
+        return arrival_times[0]
 
-    def find_next_elevator(self) -> Elevator:
-        # TODO look for first elevator in request pool that will be available and return it
-        return self.requests_pool.find_next_elevator()
+    def get_arrival_times(self) -> Tuple[Elevator, int]:
+        result = []
+        for elevator in self.elevators:
+            try:
+                latest_request = elevator.requests_pool[-1]
+                arrival_time = latest_request.finish_time - self.time
+            except IndexError:
+                arrival_time = 0
+
+            result.append((elevator, arrival_time))
+
+        return result
+
+    def has_ongoing_requests(self) -> bool:
+        return any([elevator.is_busy() for elevator in self.elevators])
 
     def adjust_time(self) -> int:
-        self._time += 1
+        self.time += 1
         return self.time
 
     @property
-    def time(self):
+    def time(self) -> int:
         return self._time
+
+    @time.setter
+    def time(self, new_time: int):
+        self._time = new_time
