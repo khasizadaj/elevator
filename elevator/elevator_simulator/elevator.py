@@ -25,6 +25,9 @@ class Elevator:
             curr_request.is_finished = True
             self.curr_request_pointer += 1
 
+            # TODO implement better way of status change
+            self.current_level = curr_request.end_level
+
         if self.has_ongoing_requests is False:
             if self.is_busy():
                 self.set_idle()

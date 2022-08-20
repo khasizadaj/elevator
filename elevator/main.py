@@ -1,4 +1,3 @@
-from pprint import pprint
 from time import sleep
 
 from elevator_simulator.elevator import Elevator

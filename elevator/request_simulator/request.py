@@ -35,4 +35,19 @@ class Request:
 
     @property
     def length_of_travel(self):
-        return (self.end_level - self.start_level) * ONE_LEVEL_DURATION
+        return abs(self.end_level - self.start_level) * ONE_LEVEL_DURATION
+
+    def calculate_finish_time(
+        self, starting_time: int = 0, curr_elevator_level: int = 1
+    ):
+        """
+        Function calculates finish time of the request based on the starting
+        time of the request and current level of the elevator.
+
+        TODO Consider door opening and closing.
+        """
+        elevator_reach_time = (
+            abs(self.start_level - curr_elevator_level) * ONE_LEVEL_DURATION
+        )
+        result = starting_time + self.length_of_travel + elevator_reach_time
+        return result
