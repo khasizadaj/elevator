@@ -11,13 +11,6 @@ class Request:
     _finish_time: int = -1  # time that request will be done
     _is_finished: bool = False
 
-    # TODO update aaccording to the assigned time logic
-    def finish_time(self, future_start_time: int = None) -> int:
-        if future_start_time is not None:
-            return future_start_time + self.length_of_travel
-
-        return self.requested_time + self.length_of_travel
-
     def __repr__(self) -> str:
         return f"Request(start_level={self.start_level}, end_level={self.end_level}, requested_time={self.requested_time})"
 
