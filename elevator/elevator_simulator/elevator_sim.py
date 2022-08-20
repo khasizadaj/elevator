@@ -26,11 +26,16 @@ class ElevatorSimulator:
 
         # calculate finish_time of request
         if len(elevator.requests_pool) > 0:
-            request.finish_time = (
-                elevator.requests_pool[-1].finish_time + request.length_of_travel
+            latest_request = elevator.requests_pool[-1]
+            request.finish_time = request.calculate_finish_time(
+                starting_time=latest_request.finish_time,
+                curr_elevator_level=elevator.current_level,
             )
         else:
-            request.finish_time = self.time + request.length_of_travel
+            request.finish_time = request.calculate_finish_time(
+                starting_time=self.time,
+                curr_elevator_level=elevator.current_level,
+            )
 
         elevator.requests_pool.append(request)
         return elevator, arrival_time
