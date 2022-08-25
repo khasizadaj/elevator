@@ -28,10 +28,10 @@ class Elevator:
             # TODO implement better way of status change
             self.current_level = curr_request.end_level
 
-        if self.has_ongoing_requests is False:
-            if self.is_busy():
-                self.set_idle()
-            return
+            if self.has_ongoing_requests is False:
+                if self.is_busy():
+                    self.set_idle()
+                return
 
     def set_idle(self):
         self.status = Status.IDLE
