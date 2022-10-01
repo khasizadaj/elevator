@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from enum import Enum
 
+from config import ONE_LEVEL_DURATION
 from request_simulator.request import Request
 
 from elevator_simulator.helper import Status
@@ -15,24 +15,42 @@ class Elevator:
     _curr_request_pointer: int = 0
 
     def update(self, time: int) -> None:
+        # TODO Handle empty travels and inform users about lcoation of elevator
+
         if self.has_ongoing_requests is False:
             if self.is_busy():
                 self.set_idle()
             return
 
-        curr_request = self.requests_pool[self.curr_request_pointer]
-        if curr_request.finish_time <= time:
-            curr_request.is_finished = True
-            self.curr_request_pointer += 1
+        self.update_current_level(time)
 
-            # TODO implement better way of current level change. Currently it's
-            # impossible to know where is the elevator at given time.
-            self.current_level = curr_request.end_level
+        if self.current_request.finish_time <= time:
+            self.current_request.is_finished = True
+            print(
+                f'\n== Request for "{self.name}" from level {self.current_request.start_level} to {self.current_request.end_level} finished.\n'
+            )
+            self.curr_request_pointer += 1
 
             if self.has_ongoing_requests is False:
                 if self.is_busy():
                     self.set_idle()
                 return
+
+    def update_current_level(self, time: int):
+        progress_of_current_request = self.calculate_progress_of_current_request(
+            time, self.current_request
+        )
+        if progress_of_current_request != 0:
+            self.current_request.progress = progress_of_current_request
+
+            if (
+                self.current_request.start_level + progress_of_current_request
+                >= self.current_level + 1
+            ):
+                self.current_level = (
+                    self.current_request.start_level + progress_of_current_request
+                )
+                print(f'"{self.name}" arrived at level {self.current_level}')
 
     def set_idle(self):
         self.status = Status.IDLE
@@ -55,6 +73,10 @@ class Elevator:
         ]
 
     @property
+    def current_request(self):
+        return self.requests_pool[self.curr_request_pointer]
+
+    @property
     def curr_request_pointer(self) -> int:
         return self._curr_request_pointer
 
@@ -65,3 +87,16 @@ class Elevator:
     @property
     def has_ongoing_requests(self):
         return self.count_ongoing_requests() != 0
+
+    def calculate_progress_of_current_request(
+        self, time: int, curr_request: Request
+    ) -> int:
+        """
+        Function calculates how many levels has been passed so far for the
+        current request.
+        """
+        progress_of_request = (
+            time - curr_request.travel_start_time
+        ) // ONE_LEVEL_DURATION
+
+        return progress_of_request

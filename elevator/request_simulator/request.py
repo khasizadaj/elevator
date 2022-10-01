@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from urllib import request
 
 from config import ONE_LEVEL_DURATION
 
@@ -8,6 +9,8 @@ class Request:
     start_level: int
     end_level: int
     requested_time: int
+    progress = 0
+    _travel_start_time = -1  # will be set when request is assigned
     _finish_time: int = -1  # time that request will be done
     _is_finished: bool = False
 
@@ -26,6 +29,14 @@ class Request:
         self._is_finished = status
 
     @property
+    def travel_start_time(self):
+        return self._travel_start_time
+
+    @travel_start_time.setter
+    def travel_start_time(self, start_time: int) -> None:
+        self._travel_start_time = start_time
+
+    @property
     def finish_time(self) -> int:
         return self._finish_time
 
@@ -37,8 +48,8 @@ class Request:
     def length_of_travel(self):
         return abs(self.end_level - self.start_level) * ONE_LEVEL_DURATION
 
-    def calculate_finish_time(
-        self, starting_time: int = 0, curr_elevator_level: int = 1
+    def calculate_times(
+        self, elevator_processing_start_time: int = 0, curr_elevator_level: int = 1
     ):
         """
         Function calculates finish time of the request based on the starting
@@ -49,5 +60,8 @@ class Request:
         elevator_reach_time = (
             abs(self.start_level - curr_elevator_level) * ONE_LEVEL_DURATION
         )
-        result = starting_time + self.length_of_travel + elevator_reach_time
-        return result
+        request_finish_time = (
+            elevator_processing_start_time + self.length_of_travel + elevator_reach_time
+        )
+        request_start_time = request_finish_time - self.length_of_travel
+        return request_start_time, request_finish_time

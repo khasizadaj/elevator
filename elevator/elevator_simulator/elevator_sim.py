@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Tuple
@@ -18,27 +19,33 @@ class ElevatorSimulator:
         self.elevators = elevators
         self._time = 0
 
-    def call(self, request: Request) -> Tuple[Elevator, int]:
-        elevator, arrival_time = self.find_available_elevator()
-
+    def assign(self, elevator: Elevator, request: Request) -> None:
         if elevator.status != Status.BUSY:
             elevator.set_busy()
 
-        # calculate finish_time of request
+        elevator.requests_pool.append(request)
+
+    def extend_request(self, elevator: Elevator, request: Request) -> Request:
+        """
+        Extend request with finish time and start time.
+        """
+
         if len(elevator.requests_pool) > 0:
             latest_request = elevator.requests_pool[-1]
-            request.finish_time = request.calculate_finish_time(
-                starting_time=latest_request.finish_time,
+            start_time, finish_time = request.calculate_times(
+                elevator_processing_start_time=latest_request.finish_time,
                 curr_elevator_level=elevator.current_level,
             )
         else:
-            request.finish_time = request.calculate_finish_time(
-                starting_time=self.time,
+            start_time, finish_time = request.calculate_times(
+                elevator_processing_start_time=self.time,
                 curr_elevator_level=elevator.current_level,
             )
 
-        elevator.requests_pool.append(request)
-        return elevator, arrival_time
+        request.finish_time = finish_time
+        request.travel_start_time = start_time
+
+        return request
 
     def update(self) -> None:
         self.adjust_time()

@@ -10,7 +10,7 @@ def main():
     relief = Elevator(name="relief")
     elevators = [love, relief]
 
-    raw_requests = "1 >> 2 @ 0, 1 >> 2 @ 0, 0 >> 2 @ 2, 3 >> 4 @ 3"
+    raw_requests = "1 >> 4 @ 0, 1 >> 4 @ 0"
     request_simulator = RequestSimulator(requests=raw_requests)
     request_simulator.generate()
 
@@ -28,23 +28,21 @@ def main():
                 print(
                     f"New request is recieved from level {new_request.start_level} to level {new_request.end_level}."
                 )
-                elevator, arrival_time = elevator_simulator.call(new_request)
+                elevator, arrival_time = elevator_simulator.find_available_elevator()
+                extended_reqeust = elevator_simulator.extend_request(
+                    elevator, new_request
+                )
+                elevator_simulator.assign(elevator, extended_reqeust)
                 print(
                     f"\nGo to elevator: {elevator.name.title()}. It will arrive in {arrival_time} second(s)."
                 )
 
         elevator_simulator.update()
-        print(f"\n\n==\nTime: {elevator_simulator.time}\n")
 
-        # added for debugging purposes
-        for elevator in elevator_simulator.elevators:
-            print(
-                f"There are {elevator.count_ongoing_requests()} ongoing requests for {elevator.name}."
-            )
-            for index, new_request in enumerate(elevator.get_ongoing_requests()):
-                print(f"{index + 1}. {new_request}")
-                print(f"  {new_request.__repr__()}")
-        # simulate waiting
+        if elevator_simulator.has_ongoing_requests() is False and new_requests is None:
+            print("work done, lads!")
+            break
+
         sleep(0.2)
 
 
