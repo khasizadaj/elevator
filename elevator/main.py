@@ -29,10 +29,10 @@ def main():
                     f"New request is recieved from level {new_request.start_level} to level {new_request.end_level}."
                 )
                 elevator, arrival_time = elevator_simulator.find_available_elevator()
-                extended_reqeust = elevator_simulator.extend_request(
+                extended_request = elevator_simulator.extend_request(
                     elevator, new_request
                 )
-                elevator_simulator.assign(elevator, extended_reqeust)
+                elevator_simulator.assign(elevator, extended_request)
                 print(
                     f"\nGo to elevator: {elevator.name.title()}. It will arrive in {arrival_time} second(s)."
                 )
