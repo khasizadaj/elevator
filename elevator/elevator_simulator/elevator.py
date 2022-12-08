@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
 
 from config import ONE_LEVEL_DURATION
-from request_simulator.request import Request
-
 from elevator_simulator.helper import Status
+from request_simulator.request import Request
 
 
 @dataclass()

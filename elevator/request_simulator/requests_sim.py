@@ -8,7 +8,7 @@ GeneratorOfRequests = Generator[Request, None, None]
 class RequestSimulator:
     def __init__(self, requests: str) -> None:
         self.requests = requests
-        self.processed_requests = []
+        self.processed_requests: list[Request] = []
         self.curr_request_pointer = 0
 
     def generate(self) -> GeneratorOfRequests:
