@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from urllib import request
 
 from config import ONE_LEVEL_DURATION
 
@@ -47,21 +46,3 @@ class Request:
     @property
     def length_of_travel(self):
         return abs(self.end_level - self.start_level) * ONE_LEVEL_DURATION
-
-    def calculate_times(
-        self, elevator_processing_start_time: int = 0, curr_elevator_level: int = 1
-    ):
-        """
-        Function calculates finish time of the request based on the starting
-        time of the request and current level of the elevator.
-
-        TODO Consider door opening and closing.
-        """
-        elevator_reach_time = (
-            abs(self.start_level - curr_elevator_level) * ONE_LEVEL_DURATION
-        )
-        request_finish_time = (
-            elevator_processing_start_time + self.length_of_travel + elevator_reach_time
-        )
-        request_start_time = request_finish_time - self.length_of_travel
-        return request_start_time, request_finish_time
