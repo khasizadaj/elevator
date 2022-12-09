@@ -13,9 +13,9 @@ class Elevator:
     requests_pool: list[Request] = field(default_factory=lambda: [])
     _curr_request_pointer: int = 0
 
-    def update(self, time: int) -> None:
-        # TODO Handle empty travels and inform users about lcoation of elevator
+    # TODO Know current destinition of elevator
 
+    def update(self, time: int) -> None:
         if self.has_ongoing_requests is False:
             if self.is_busy():
                 self.set_idle()
