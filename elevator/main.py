@@ -1,3 +1,4 @@
+import sys
 from time import sleep
 
 from elevator_simulator.elevator import Elevator
@@ -5,13 +6,12 @@ from elevator_simulator.elevator_sim import ElevatorSimulator
 from request_simulator.requests_sim import RequestSimulator
 
 
-def main():
+def main(requests_str: str):
     love = Elevator(name="love")
     relief = Elevator(name="relief")
     elevators = [love, relief]
 
-    raw_requests = "1 >> 4 @ 0, 1 >> 4 @ 0"
-    request_simulator = RequestSimulator(requests=raw_requests)
+    request_simulator = RequestSimulator(requests=requests_str)
     request_simulator.generate()
 
     elevator_simulator = ElevatorSimulator(elevators=elevators)
@@ -28,9 +28,11 @@ def main():
                 print(
                     f"New request is recieved from level {new_request.start_level} to level {new_request.end_level}."
                 )
-                elevator, arrival_time = elevator_simulator.find_available_elevator()
+                elevator, arrival_time = elevator_simulator.find_available_elevator(
+                    new_request
+                )
                 extended_request = elevator_simulator.extend_request(
-                    elevator, new_request
+                    new_request, arrival_time
                 )
                 elevator_simulator.assign(elevator, extended_request)
                 print(
@@ -47,4 +49,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv
+    main(args[1])

@@ -29,7 +29,8 @@ class RequestSimulator:
 
         return requests
 
-    def process(self, request: str) -> Request:
+    @staticmethod
+    def process(request: str) -> Request:
         """
         Function processes the request string and return `Request` object.
 

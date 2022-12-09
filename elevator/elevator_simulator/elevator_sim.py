@@ -1,11 +1,9 @@
-import copy
-from dataclasses import dataclass
 from enum import Enum
 from typing import Tuple
 
-from request_simulator.request import Request
-
+from config import ONE_LEVEL_DURATION
 from elevator_simulator.elevator import Elevator
+from request_simulator.request import Request
 
 
 class Status(Enum):
@@ -25,25 +23,13 @@ class ElevatorSimulator:
 
         elevator.requests_pool.append(request)
 
-    def extend_request(self, elevator: Elevator, request: Request) -> Request:
+    def extend_request(self, request: Request, arrival_time: int = 0) -> Request:
         """
         Extend request with finish time and start time.
         """
 
-        if len(elevator.requests_pool) > 0:
-            latest_request = elevator.requests_pool[-1]
-            start_time, finish_time = request.calculate_times(
-                elevator_processing_start_time=latest_request.finish_time,
-                curr_elevator_level=elevator.current_level,
-            )
-        else:
-            start_time, finish_time = request.calculate_times(
-                elevator_processing_start_time=self.time,
-                curr_elevator_level=elevator.current_level,
-            )
-
-        request.finish_time = finish_time
-        request.travel_start_time = start_time
+        request.travel_start_time = arrival_time + self.time
+        request.finish_time = request.travel_start_time + request.length_of_travel
 
         return request
 
@@ -52,22 +38,37 @@ class ElevatorSimulator:
         for elevator in self.elevators:
             elevator.update(self.time)
 
-    def find_available_elevator(self) -> Tuple[Elevator, int]:
+    def find_available_elevator(self, new_request: Request) -> Tuple[Elevator, int]:
         """
-        Function returns available elevator by assuming that elevator arriving
-        faster than others are the better one.
+        Function returns available elevator along with relative arrival time.
+
+        Args:
+            - new_request: newly arrived request
+
+        Note:
+            - Function assumes that elevator arriving faster than others is the
+            best one.
         """
-        arrival_times = self.get_arrival_times()
+
+        arrival_times = self.get_arrival_times(new_request.start_level)
         arrival_times.sort(key=lambda x: x[1])
 
         return arrival_times[0]
 
-    def get_arrival_times(self) -> Tuple[Elevator, int]:
+    def get_arrival_times(self, new_request_start_level) -> list[Elevator, int]:
         result = []
         for elevator in self.elevators:
             try:
                 latest_request = elevator.requests_pool[-1]
-                arrival_time = latest_request.finish_time - self.time
+
+                arrival_time = (
+                    abs(latest_request.end_level - new_request_start_level)
+                    * ONE_LEVEL_DURATION
+                )
+
+                if elevator.has_ongoing_requests:
+                    arrival_time += latest_request.finish_time - self.time
+
             except IndexError:
                 arrival_time = 0
 
