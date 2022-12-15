@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from config import ONE_LEVEL_DURATION
+from elevator_simulator.helper import Direction
 
 
 @dataclass()
@@ -9,9 +10,17 @@ class Request:
     end_level: int
     requested_time: int
     progress = 0
+    _direction: Direction = None
     _travel_start_time = -1  # will be set when request is assigned
     _finish_time: int = -1  # time that request will be done
+    _is_started: bool = False
     _is_finished: bool = False
+    _passenger_count = 1
+
+    def __post_init__(self):
+        self.direction = (
+            Direction.UP if self.start_level < self.end_level else Direction.DOWN
+        )
 
     def __repr__(self) -> str:
         return f"Request(start_level={self.start_level}, end_level={self.end_level}, requested_time={self.requested_time})"
@@ -26,6 +35,14 @@ class Request:
     @is_finished.setter
     def is_finished(self, status: bool):
         self._is_finished = status
+
+    @property
+    def is_started(self) -> int:
+        return self._is_started
+
+    @is_started.setter
+    def is_started(self, time: int) -> int:
+        self._is_started = time
 
     @property
     def travel_start_time(self):
@@ -46,3 +63,19 @@ class Request:
     @property
     def length_of_travel(self):
         return abs(self.end_level - self.start_level) * ONE_LEVEL_DURATION
+
+    @property
+    def direction(self) -> Direction:
+        return self._direction
+
+    @direction.setter
+    def direction(self, direction: Direction) -> None:
+        self._direction = direction
+
+    @property
+    def passenger_count(self):
+        return self._passenger_count
+
+    @passenger_count.setter
+    def passenger_count(self, count):
+        self._passenger_count = count

@@ -3,13 +3,8 @@ from typing import Tuple
 
 from config import ONE_LEVEL_DURATION
 from elevator_simulator.elevator import Elevator
+from elevator_simulator.helper import Direction, Status
 from request_simulator.request import Request
-
-
-class Status(Enum):
-    IDLE = 1
-    ASSIGNED = 2
-    BUSY = 3
 
 
 class ElevatorSimulator:
@@ -18,8 +13,9 @@ class ElevatorSimulator:
         self._time = 0
 
     def assign(self, elevator: Elevator, request: Request) -> None:
-        if elevator.status != Status.BUSY:
-            elevator.set_busy()
+        # if elevator.status != Status.BUSY:
+        #     elevator.set_busy()
+        #     elevator.add_passenger(count=1)
 
         elevator.requests_pool.append(request)
 
@@ -34,7 +30,7 @@ class ElevatorSimulator:
         return request
 
     def update(self) -> None:
-        self.adjust_time()
+        # self.adjust_time()
         for elevator in self.elevators:
             elevator.update(self.time)
 
@@ -77,7 +73,7 @@ class ElevatorSimulator:
         return result
 
     def has_ongoing_requests(self) -> bool:
-        return any([elevator.is_busy() for elevator in self.elevators])
+        return any([elevator.is_idle() is False for elevator in self.elevators])
 
     def adjust_time(self) -> int:
         self.time += 1
